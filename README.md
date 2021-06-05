@@ -27,7 +27,9 @@ The library is implemented as a class named "`FrequencyCounter`" with 3 member f
  - 7= Period mode (1 period)
  - 8= Period mode (average 10 periods)
  - 9= Period mode (average 100 periods)
+
 GateTime values 6..9 are available only if compile option is enabled.
+
 Function returns the current gate time or -1 if error. 
  
 `sbyte `**mode**`(void) `  Returns the current gate mode/time. (0..9)
