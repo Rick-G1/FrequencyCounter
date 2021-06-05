@@ -1,0 +1,23 @@
+#############################################
+# Syntax Coloring Map For FrequencyCounter
+#############################################
+# FUNCTIONS COLOR     ORANGE  KEYWORD1
+# MEMBERS   COLOR     BROWN   KEYWORD2
+# VARIABLES COLOR     BLUE    LITERAL1
+
+#############################################
+# Functions (KEYWORD1)
+#############################################
+FrequencyCounter	KEYWORD1
+
+#############################################
+Members (KEYWORD2)
+#############################################
+mode	KEYWORD2
+read	KEYWORD2
+available	KEYWORD2
+
+#############################################
+Variables (LITERAL1)
+#############################################
+sbyte	LITERAL1
