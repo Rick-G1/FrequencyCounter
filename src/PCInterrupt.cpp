@@ -60,7 +60,7 @@ volatile byte        Changes[2]= {0,0};
 //   extern "C" void PCChangeIntFunc(byte Changes[])  { <some code> }
 // then that function will be called on each pin change interrupt.  If you 
 // don't define it, then no code will be generated for it in the ISR. 
-extern "C" void __PCChangeISREmpty(byte Changes[]) { }
+extern "C" void __PCChangeISREmpty(byte Changes[] __attribute__((unused))) { }
 extern "C" void PCChangeIntFunc(byte Changes[]) __attribute__ ((weak, alias("__PCChangeISREmpty")));
 
 

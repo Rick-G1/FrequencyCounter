@@ -329,7 +329,7 @@ extern "C" void PCChangeIntFunc(byte Changes[])
   // If this function is defined, it replaces the "weak" definition in the
   // PCInterrupt module. 
 {  
-  byte svTCCR, svTCNT;
+  byte svTCCR;
 
   if (fcGateTime==FCEXTNO) 
   {

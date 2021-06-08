@@ -155,7 +155,7 @@ LiquidCrystal Lcd(16,14, 15,18,19,20);      // rs,enable, d4,d5,d6,d7
 //*      Code to implement printf via the USB virtual or UART serial port.     *
 //******************************************************************************
 #if COMIF
-int COM1putter( char c, FILE *t) 
+int COM1putter( char c, FILE *t __attribute__((unused))) 
 { 
   if (c=='\n') COMM.write('\r');   
   COMM.write(c);   return 1; 
@@ -244,8 +244,8 @@ void ShowCtrMode(sbyte Mode)
 #define INBUFSIZ  80
 char InBuf[INBUFSIZ+1];  byte InBufPtr = 0; 
 #if FREEIF
-byte FCMode = 1, FcBtnUH = 0, FcBtnDH = 0;    
-byte GMode = 16,  GBtnUH = 0, GBtnDH = 0;    
+sbyte FCMode = 1;  byte FcBtnUH = 0, FcBtnDH = 0;    
+byte  GMode = 16;  byte GBtnUH = 0,  GBtnDH = 0;    
 #endif  //FREEIF
 
 void setup() 
@@ -292,7 +292,7 @@ void setup()
 void loop() 
   // The loop routine runs over and over again forever:
 {
-  static long MS=millis();   static bool FCState=0;
+  static unsigned long MS=millis();   static bool FCState=0;
   char FCBuffer[20] = {0};   byte i; 
 
   // Read the frequency counter if FREQCTR and its ready and either FCState or LCD
@@ -352,7 +352,7 @@ void loop()
     // try to set gate mode... if it's good then show new counter mode
     FcChg=0;  i=FC.mode(FCMode);  
     // else if we incremented to invalid value then decrement back to valid
-    if(((int8_t)i)>=0) ShowCtrMode(FCMode); else if (!FcBtnUH) FCMode--;
+    if(((sbyte)i)>=0) ShowCtrMode(FCMode); else if (!FcBtnUH) FCMode--;
 #if FREQGEN 
     // If we changed from period mode to traditional mode (or reverse), change
     // the generator frequency to be appropriate for the counter mode.
@@ -425,7 +425,7 @@ ReturnGen:    printfROM("Frequency generator set to %ld Hz\n", FG.read());
 #if FREQCTR
           // Get or set the frequency generator gate time
           case 'T': 
-              static int8_t Gate; 
+              static sbyte Gate; 
               if (InBufPtr>1)
               {
                 // Convert characters to 'Val' and see if we consumed all characters 
@@ -433,7 +433,7 @@ ReturnGen:    printfROM("Frequency generator set to %ld Hz\n", FG.read());
                 Val=strtol(InBuf+1,&last,10);  i=((last-InBuf)<(InBufPtr) || Val<-127 || Val>127);  
                 if (!i) 
                 { 
-                  Gate=FC.mode((int8_t)Val); 
+                  Gate=FC.mode((sbyte)Val); 
                   if (Gate<0) goto Invalid;
 #if FREEIF
                   FCMode=Gate;
