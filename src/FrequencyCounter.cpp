@@ -212,28 +212,47 @@
 Revision log: 
   1.0.0    2-5-21    REG   
     Initial implementation
-
+  1.0.1    6-20-21   REG   
+    Reworked to put compile options in header file
 */
 
+#include <arduino.h>
+#include "FrequencyCounter.h"
+#include "systimer.h"           // access to SysTimerIntFunc
 
 /******************************************************************************/
 /*                        User configurable options                           */
 /******************************************************************************/
 
+// Does this module take over the SysTimerIntFunc function ?
+#ifndef FCINCLUDESYSTIMERLINK
+#define FCINCLUDESYSTIMERLINK 1             // define as non-zero to take over function
+#endif
 
 // Allow Ext Gate mode?       (adds 244 flash bytes )
+#ifndef FCEXTERN
 #define FCEXTERN              1             // 1= ext gate mode enabled
+#endif
 
 // Arduino pin number to use for external gate
+#ifndef FCEXTGATEMSK
 #define FCEXTGATEMSK          PCINTMASK9    // PB5 isr index (Arduino Digital 9)
+#endif
 
 // Allow period measure mode? (adds 1030 flash bytes)
+#ifndef FCPERIOD
 #define FCPERIOD              1             // 1= Period measure mode enabled
+#endif
 
-#define PERIODTIMOUT          5000          // for period measure it must 
-                                            // occur within this many mS
-
-#define FCPRESCALER           1             // If there is a prescaler, put prescale value here
+// For period measure it must occur within this many mS
+#ifndef PERIODTIMOUT
+#define PERIODTIMOUT          5000          
+#endif
+                                            
+// If there is a prescaler, put prescale value here
+#ifndef FCPRESCALER
+#define FCPRESCALER           1             
+#endif
 
 // Enable this for debug messages.
 //#define FRQCTRDEBUG           1             // For debug... show debug messages. 
@@ -245,9 +264,6 @@ Revision log:
 /*                                                                            */
 /******************************************************************************/
 
-#include <arduino.h>
-#include "FrequencyCounter.h"
-#include "systimer.h"     // access to SysTimerIntFunc
 #if FCEXTERN
 #include "PCInterrupt.h"  // access to PCChangeIntFunc (for ext gate)
 #endif
@@ -294,7 +310,7 @@ static byte                   PrdCnt=0;           // Averaging for period measur
 #endif
 
 
-#if defined(_SYSTIMER_H)
+#if FCINCLUDESYSTIMERLINK
 extern "C" void SysTimerIntFunc(void) 
   // This function is called by the system timer interrupt routine when
   // the timer times out each millisecond.  This timing is used to call the 
@@ -462,7 +478,10 @@ sbyte FrequencyCounter::mode(sbyte GateTime)
   // GateTime values 6..9 are available only if compile option is enabled.
   // Function returns the current gate time or -1 if error.     
 {
-  unsigned int t=0; byte i,j, svGateTime=fcGateTime;
+  unsigned int t=0; byte i,j; 
+#if FCEXTERN
+  byte svGateTime=fcGateTime;       // save previous mode
+#endif  // FCEXTERN
 
   if (GateTime < 0) goto GetGate;
   if (GateTime > FCMODEMAX) return -1;  
@@ -508,7 +527,7 @@ sbyte FrequencyCounter::mode(sbyte GateTime)
       TCNT0 = 0;
       TIMSK0 |= (1 << TOIE0);   // enable timer overflow interrupt
 #if FCEXTERN
-      if (fcGateTime==FCEXTNO) { InitPCInterrupt(FCEXTGATEMSK); fcprescaler=0; }
+      if (fcGateTime==FCEXTNO) { PCH.enable(FCEXTGATEMSK); fcprescaler=0; }
 #endif
     }
     interrupts();
@@ -519,7 +538,7 @@ sbyte FrequencyCounter::mode(sbyte GateTime)
     TCCR0A = 0;   TCCR0B = 0;   // Prescaler.. 0=timer off, 1=/1,2=/8,3=/64,4=/256,5=/1024,6=/ext fall,7=/ext rise
     TIMSK0 &= ~(1 << TOIE0);    // disable timer overflow interrupt
 #if FCEXTERN
-    if (svGateTime==FCEXTNO)  InitPCInterrupt(0);
+    if (svGateTime==FCEXTNO) PCH.disable(FCEXTGATEMSK);
 #endif
   }
   _FreqCtrReady=0; fcResult=0;

@@ -1,29 +1,25 @@
 /******************************************************************************/
 /*                                                                            */
-/*           PCInterrupt -- Pin change/external interrupt functions           */
+/*                   E M B E D D E D   C O N T R O L L E R                    */
 /*                                                                            */
-/*                     Copyright (c) 2021  Rick Groome                        */
+/*                     PC Interrupt (pin change interrupts)                   */
 /*                                                                            */
-/* Permission is hereby granted, free of charge, to any person obtaining a    */
-/* copy of this software and associated documentation files (the "Software"), */
-/* to deal in the Software without restriction, including without limitation  */
-/* the rights to use, copy, modify, merge, publish, distribute, sublicense,   */
-/* and/or sell copies of the Software, and to permit persons to whom the      */
-/* Software is furnished to do so, subject to the following conditions:       */
+/*                    C I R C U I T   C H E C K,  I N C .                     */
+/*                                                                            */   
+/*         Copyright (c) 2014  Circuit Check, Inc.   All rights reserved.     */
 /*                                                                            */
-/* The above copyright notice and this permission notice shall be included in */
-/* all copies or substantial portions of the Software.                        */
+/*                      CONFIDENTIAL AND PROPRIETARY                          */
 /*                                                                            */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR */
-/* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,   */
-/* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL    */
-/* THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER */
-/* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING    */
-/* FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER        */
-/* DEALINGS IN THE SOFTWARE.                                                  */
+/*    THIS WORK CONTAINS VALUABLE, CONFIDENTIAL AND PROPRIETARY INFORMATION   */
+/*    OF THE AUTHOR.   DISCLOSURE,  USE OR PRODUCTION WITHOUT THE WRITTEN     */
+/*    AUTHORIZATION OF THE AUTHOR IS STRICTLY PROHIBITED.    THIS WORK BY     */
+/*    THE AUTHOR IS PROTECTED BY THE LAWS OF THE UNITED STATES AND OTHER      */
+/*    COUNTRIES.                                                              */
 /*                                                                            */
-/*  PROCESSOR:  ATmega32U4       COMPILER: Arduino/GNU C for AVR Vers 1.8.5   */ 
-/*  Written by: Rick Groome 2021                                              */ 
+/*    PROCESSOR:  Atmel ATmega32U4         COMPILER: Arduino / GNU C for AVR  */
+/*                                                                            */
+/*    Written by: Rick Groome 2014                                            */
+/*                                                                            */
 /*                                                                            */
 /******************************************************************************/
 
@@ -32,26 +28,38 @@
 
 #include <arduino.h>
 
-// Pin numbers for each bit position (e.g. Arduino pin number)
-// NOTE: This is for ATMega16/32U4 only.  
-//       It will need to be reworked for other processors.
-#define PCINTMASK8  0x10  /* PB4  PinChange  Digital pin 8  */ 
-#define PCINTMASK9  0x20  /* PB5  PinChange  Digital pin 9  */ 
-#define PCINTMASK10 0x40  /* PB6  PinChange  Digital pin 10 */ 
-#define PCINTMASK14 0x08  /* PB3  PinChange  Digital pin 14 */ 
-#define PCINTMASK15 0x02  /* PB1  PinChange  Digital pin 15 */ 
-#define PCINTMASK16 0x04  /* PB2  PinChange  Digital pin 16 */ 
-#define PCINTMASK7  0x80  /* PE6  Ext Int 6  Digital pin 7  */ 
-//#define PCINTMASKPB0 0x01 /* PB0  PinChange  Digital pin NONE  */ 
+// Pin numbers for each bit position (e.g. arduino pin number)
+// Use these constants for 'mask' values below in the class.
+#define PCINTMASK8  0x10	/* Digital 8  [PB4] */ 
+#define PCINTMASK9  0x20	/* Digital 9  [PB5] */ 
+#define PCINTMASK10 0x40	/* Digital 10 [PB6] */ 
+#define PCINTMASK14 0x01	/* Digital 14 [PB0] */ 
+#define PCINTMASK15 0x02	/* Digital 15 [PB1] */ 
+#define PCINTMASK16 0x04	/* Digital 16 [PB2] */ 
+#define PCINTMASK17 0x08	/* Digital 17 [PB3] */ 
+#define PCINTMASK7  0x80	/* Digital 7  [PE6] (use this instead of PB7) */ 
 
-extern volatile byte Changes[2];
+// Use rising/falling/change to determine if a Pin Change interrupt occured.
+// e.g      if (PCH.rising(PCINTMASK10)) { dosomething } 
+// Then don't forget to call PCH.clear(PCINTMASK10);  
 
-extern void InitPCInterrupt(byte mask);
-  // Initialize the interrupt on pin change interrupt.
+class PCInterrupt
+{
+  public:
+    boolean falling(byte mask);  // Return true if falling interrupt detected on mask bit
+    boolean rising(byte mask);   // Return true if rising interrupt detected on mask bit
+    boolean change(byte mask);   // Return true if any change detected on mask bit
+    void    clear(byte mask);    // Clear the interrupt bits in mask
+    void    enable(byte mask);   // Enable interrupts on pins in mask
+    void    disable(byte mask);  // Disable interrupts on pins in mask
+};
 
-// If you define this function, then it will be called as part of the 
-// pin change ISR routine.
-extern "C" { extern void PCChangeIntFunc(byte Changes[]); }
+extern PCInterrupt PCH;   // This is the one (and only) instance of this class
+// You can rename this to whatever you like, if desired. 
+
+// If you define this function, then it will be called as part of 
+// the pin change interrupt service routine
+extern "C" { void PCChangeIntFunc(byte Changes[]); }
 
 #endif  //_PCINTERRUPT_H
 

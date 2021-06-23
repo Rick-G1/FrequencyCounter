@@ -101,5 +101,32 @@ extern void FreqCtrGateISR(void);
   // This is normally done in the ISR of one of the timers in the micro. 
 
 
+/******************************************************************************/
+/*                        User configurable options                           */
+/*     Changing these options controls which features the module contains     */
+/******************************************************************************/
+
+// Does this module take over the SysTimerIntFunc function ?
+#define FCINCLUDESYSTIMERLINK 1             // define as non-zero to take over function
+
+// Allow Ext Gate mode?       (adds 244 flash bytes )
+#define FCEXTERN              1             // 1= ext gate mode enabled
+
+// Arduino pin number to use for external gate
+#define FCEXTGATEMSK          PCINTMASK9    // PB5 isr index (Arduino Digital 9)
+
+// Allow period measure mode? (adds 1030 flash bytes)
+#define FCPERIOD              1             // 1= Period measure mode enabled
+
+// for period measure it must occur within this many mS
+#define PERIODTIMOUT          5000          
+
+// If there is a prescaler, put prescale value here
+#define FCPRESCALER           1             
+
+// Enable this for debug messages.
+//#define FRQCTRDEBUG           1             // For debug... show debug messages. 
+
+
 #endif    // _FREQCTR_H
 
